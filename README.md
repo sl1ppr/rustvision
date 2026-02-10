@@ -1,7 +1,5 @@
 RustVision is a simple tool for adjusting gamma in games like Rust on the fly. Built with Rust.
 
-<img width="353" height="464" alt="image" src="https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba" />
-
 you can manually change proccess name for any game.
 Works well with any anti-cheat.
 
@@ -24,3 +22,5 @@ If you prefer to compile the project yourself, follow these steps:
    ```bash
    git clone [https://github.com/sl1ppr/rustvision.git](https://github.com/sl1ppr/rustvision.git)
    cd rustvision
+
+<img width="353" height="464" alt="image" src="https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba" />
