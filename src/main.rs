@@ -91,19 +91,33 @@ impl AppState {
     }
 
     fn calculate_ramp(&self) -> [WORD; 768] {
-        let mut ramp = [0u16; 768];
-        let contrast_factor = (self.settings.contrast + 0.5).powf(2.0);
-        for i in 0..256 {
-            let mut val = (i as f32 / 255.0 - 0.5) * contrast_factor + 0.5;
-            val += self.settings.brightness - 0.5;
-            if val > 0.0 { val = val.powf(1.0 / self.settings.gamma); }
-            let word = (val.clamp(0.0, 1.0) * 65535.0) as u16;
-            ramp[i] = word;
-            ramp[i + 256] = word;
-            ramp[i + 512] = word;
+    let mut ramp = [0u16; 768];
+    let contrast_factor = (self.settings.contrast + 0.5).powf(2.0);
+    
+    let mut last_val: u16 = 0; 
+
+    for i in 0..256 {
+        let mut val = (i as f32 / 255.0 - 0.5) * contrast_factor + 0.5;
+        val += self.settings.brightness - 0.5;
+        
+        if val > 0.0 { 
+            val = val.powf(1.0 / self.settings.gamma.max(0.01)); 
         }
-        ramp
+        
+        let mut word = (val.clamp(0.0, 1.0) * 65535.0) as u16;
+
+        //fix
+        if i > 0 && word <= last_val && last_val < 65535 {
+            word = last_val + 1;
+        }
+        last_val = word;
+
+        ramp[i] = word;       // R
+        ramp[i + 256] = word; // G
+        ramp[i + 512] = word; // B
     }
+    ramp
+}
 
     fn get_foreground_process(&self) -> String {
         unsafe {
