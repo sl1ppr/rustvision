@@ -20,7 +20,7 @@ If you prefer to compile the project yourself, follow these steps:
 1. **Install Rust:** Ensure you have the Rust toolchain installed (get it at [rustup.rs](https://rustup.rs/)).
 2. **Clone the repository:**
    ```bash
-   git clone [https://github.com/sl1ppr/rustvision.git](https://github.com/sl1ppr/rustvision.git)
+   git clone https://github.com/sl1ppr/rustvision.git
    cd rustvision
 
 <img width="353" height="464" alt="image" src="https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba" />
