@@ -35,7 +35,7 @@ impl Default for DisplaySettings {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 enum KeyTarget {
     Toggle,
     Auto,
