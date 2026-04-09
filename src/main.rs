@@ -58,11 +58,12 @@ struct AppState {
 
 impl Default for AppState {
     fn default() -> Self {
+        let settings = DisplaySettings::default();
         Self {
-            settings: DisplaySettings::default(),
+            settings,
             is_active: false,
             original_ramps: HashMap::new(),
-            cached_ramp: calculate_ramp(&DisplaySettings::default()),
+            cached_ramp: calculate_ramp(&settings),
             toggle_key: 0x78,
             auto_key: 0x79,
             waiting_for_key: None,
@@ -103,11 +104,7 @@ fn calculate_ramp(settings: &DisplaySettings) -> GammaRamp {
 }
 
 impl AppState {
-    fn update_gamma(&mut self, active: bool) {
-        if self.is_active == active {
-            return;
-        }
-
+    fn save_original_ramps(&mut self) {
         unsafe {
             let mut device: DISPLAY_DEVICEW = std::mem::zeroed();
             device.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
@@ -121,21 +118,70 @@ impl AppState {
                         null_mut(),
                         null_mut(),
                     );
-
                     if !hdc.is_null() {
                         let device_name = String::from_utf16_lossy(&device.DeviceName)
                             .trim_end_matches('\0')
                             .to_string();
-
-                        if active {
-                            if !self.original_ramps.contains_key(&device_name) {
-                                let mut current = [0u16; 768];
-                                if GetDeviceGammaRamp(hdc, current.as_mut_ptr() as *mut _) != 0 {
-                                    self.original_ramps.insert(device_name.clone(), current);
-                                }
+                        if !self.original_ramps.contains_key(&device_name) {
+                            let mut current: GammaRamp = [0; 768];
+                            if GetDeviceGammaRamp(hdc, current.as_mut_ptr() as *mut _) != 0 {
+                                self.original_ramps.insert(device_name, current);
                             }
-                            SetDeviceGammaRamp(hdc, self.cached_ramp.as_ptr() as *mut _);
-                        } else if let Some(original) = self.original_ramps.get(&device_name) {
+                        }
+                        DeleteDC(hdc);
+                    }
+                }
+                dev_num += 1;
+            }
+        }
+    }
+
+    fn apply_ramp(&self, ramp: &GammaRamp) {
+        unsafe {
+            let mut device: DISPLAY_DEVICEW = std::mem::zeroed();
+            device.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
+            let mut dev_num = 0;
+
+            while EnumDisplayDevicesW(null_mut(), dev_num, &mut device, 0) != 0 {
+                if (device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) != 0 {
+                    let hdc = CreateDCW(
+                        null_mut(),
+                        device.DeviceName.as_ptr(),
+                        null_mut(),
+                        null_mut(),
+                    );
+                    if !hdc.is_null() {
+                        SetDeviceGammaRamp(hdc, ramp.as_ptr() as *mut _);
+                        DeleteDC(hdc);
+                    }
+                }
+                dev_num += 1;
+            }
+        }
+    }
+
+    fn restore_original_ramps(&self) {
+        if self.original_ramps.is_empty() {
+            return;
+        }
+        unsafe {
+            let mut device: DISPLAY_DEVICEW = std::mem::zeroed();
+            device.cb = std::mem::size_of::<DISPLAY_DEVICEW>() as u32;
+            let mut dev_num = 0;
+
+            while EnumDisplayDevicesW(null_mut(), dev_num, &mut device, 0) != 0 {
+                if (device.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) != 0 {
+                    let hdc = CreateDCW(
+                        null_mut(),
+                        device.DeviceName.as_ptr(),
+                        null_mut(),
+                        null_mut(),
+                    );
+                    if !hdc.is_null() {
+                        let device_name = String::from_utf16_lossy(&device.DeviceName)
+                            .trim_end_matches('\0')
+                            .to_string();
+                        if let Some(original) = self.original_ramps.get(&device_name) {
                             SetDeviceGammaRamp(hdc, original.as_ptr() as *mut _);
                         }
                         DeleteDC(hdc);
@@ -144,7 +190,37 @@ impl AppState {
                 dev_num += 1;
             }
         }
-        self.is_active = active;
+    }
+
+    fn activate(&mut self) {
+        if self.is_active {
+            return;
+        }
+        if self.original_ramps.is_empty() {
+            self.save_original_ramps();
+        }
+        self.apply_ramp(&self.cached_ramp);
+        self.is_active = true;
+    }
+
+    fn deactivate(&mut self) {
+        if !self.is_active {
+            return;
+        }
+        self.restore_original_ramps();
+        self.is_active = false;
+    }
+
+    fn refresh_ramp(&mut self) {
+        self.cached_ramp = calculate_ramp(&self.settings);
+        if self.is_active {
+            self.apply_ramp(&self.cached_ramp);
+        }
+    }
+
+    fn reset(&mut self) {
+        self.settings = DisplaySettings::default();
+        self.refresh_ramp();
     }
 
     fn get_foreground_process(&self) -> String {
@@ -225,12 +301,16 @@ impl eframe::App for AppState {
             let auto_down = unsafe { GetAsyncKeyState(self.auto_key) } as u16 & 0x8000 != 0;
 
             if toggle_down && !self.last_toggle_state && !self.auto_mode {
-                self.update_gamma(!self.is_active);
+                if self.is_active {
+                    self.deactivate();
+                } else {
+                    self.activate();
+                }
             }
             if auto_down && !self.last_auto_state {
                 self.auto_mode = !self.auto_mode;
                 if !self.auto_mode {
-                    self.update_gamma(false);
+                    self.deactivate();
                 }
             }
             self.last_toggle_state = toggle_down;
@@ -240,7 +320,11 @@ impl eframe::App for AppState {
         if self.auto_mode && now - self.last_check > 0.3 {
             let proc = self.get_foreground_process();
             let is_target = proc.eq_ignore_ascii_case(&self.target_process);
-            self.update_gamma(is_target);
+            if is_target {
+                self.activate();
+            } else {
+                self.deactivate();
+            }
             self.last_check = now;
         }
 
@@ -254,7 +338,7 @@ impl eframe::App for AppState {
                 ui.horizontal(|ui| {
                     let cb = ui.checkbox(&mut self.auto_mode, "Авто-режим");
                     if cb.changed() && !self.auto_mode {
-                        self.update_gamma(false);
+                        self.deactivate();
                     }
                     self.key_binding_button(ui, KeyTarget::Auto);
                 });
@@ -279,22 +363,13 @@ impl eframe::App for AppState {
                 ui.add(egui::Slider::new(&mut self.settings.contrast, 0.0..=1.0).text("Контрастность"));
 
             if gamma_slider.changed() || brightness_slider.changed() || contrast_slider.changed() {
-                self.cached_ramp = calculate_ramp(&self.settings);
-                if self.is_active {
-                    self.is_active = false;
-                    self.update_gamma(true);
-                }
+                self.refresh_ramp();
             }
 
             ui.add_space(10.0);
             ui.horizontal(|ui| {
                 if ui.button("Сброс").clicked() {
-                    self.settings = DisplaySettings::default();
-                    self.cached_ramp = calculate_ramp(&self.settings);
-                    if self.is_active {
-                        self.is_active = false;
-                        self.update_gamma(true);
-                    }
+                    self.reset();
                 }
                 let (status, color) = if self.is_active {
                     ("Работаю..", egui::Color32::LIGHT_GREEN)
