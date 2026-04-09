@@ -40,14 +40,6 @@ impl DisplaySettings {
     fn gamma_from_adj(adj: f32) -> f32 {
         (1.0 + adj).max(0.01)
     }
-
-    fn brightness_from_adj(adj: f32) -> f32 {
-        100.0 + adj
-    }
-
-    fn contrast_from_adj(adj: f32) -> f32 {
-        100.0 + adj
-    }
 }
 
 impl Default for DisplaySettings {
@@ -566,28 +558,26 @@ impl eframe::App for AppState {
                 self.settings.gamma = DisplaySettings::gamma_from_adj(gamma_adj);
             }
 
-            let mut brightness_adj = self.settings.brightness_pct - 100.0;
-            let brightness_val = DisplaySettings::brightness_from_adj(brightness_adj);
-            let brightness_label = format!("{}: {}%", I18n::tr(&self.lang, "brightness"), brightness_val.round() as i32);
+            let mut brightness_val = self.settings.brightness_pct - 50.0;
+            let brightness_label = format!("{}: {}%", I18n::tr(&self.lang, "brightness"), self.settings.brightness_pct.round() as i32);
             let brightness_resp = ui.add(
-                egui::Slider::new(&mut brightness_adj, -50.0..=50.0)
+                egui::Slider::new(&mut brightness_val, 0.0..=100.0)
                     .text(&brightness_label)
                     .step_by(1.0)
             );
             if brightness_resp.changed() {
-                self.settings.brightness_pct = DisplaySettings::brightness_from_adj(brightness_adj);
+                self.settings.brightness_pct = brightness_val + 50.0;
             }
 
-            let mut contrast_adj = self.settings.contrast_pct - 100.0;
-            let contrast_val = DisplaySettings::contrast_from_adj(contrast_adj);
-            let contrast_label = format!("{}: {}%", I18n::tr(&self.lang, "contrast"), contrast_val.round() as i32);
+            let mut contrast_val = self.settings.contrast_pct - 50.0;
+            let contrast_label = format!("{}: {}%", I18n::tr(&self.lang, "contrast"), self.settings.contrast_pct.round() as i32);
             let contrast_resp = ui.add(
-                egui::Slider::new(&mut contrast_adj, -50.0..=50.0)
+                egui::Slider::new(&mut contrast_val, 0.0..=100.0)
                     .text(&contrast_label)
                     .step_by(1.0)
             );
             if contrast_resp.changed() {
-                self.settings.contrast_pct = DisplaySettings::contrast_from_adj(contrast_adj);
+                self.settings.contrast_pct = contrast_val + 50.0;
             }
 
             if gamma_resp.changed() || brightness_resp.changed() || contrast_resp.changed() {
