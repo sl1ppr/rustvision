@@ -46,8 +46,8 @@ impl Default for DisplaySettings {
     fn default() -> Self {
         Self {
             gamma: 1.0,
-            brightness_pct: 100.0,
-            contrast_pct: 100.0,
+            brightness_pct: 50.0,
+            contrast_pct: 50.0,
         }
     }
 }
@@ -558,26 +558,26 @@ impl eframe::App for AppState {
                 self.settings.gamma = DisplaySettings::gamma_from_adj(gamma_adj);
             }
 
-            let mut brightness_val = self.settings.brightness_pct - 50.0;
-            let brightness_label = format!("{}: {}%", I18n::tr(&self.lang, "brightness"), self.settings.brightness_pct.round() as i32);
+            let mut brightness_val = self.settings.brightness_pct;
+            let brightness_label = format!("{}: {}%", I18n::tr(&self.lang, "brightness"), brightness_val.round() as i32);
             let brightness_resp = ui.add(
                 egui::Slider::new(&mut brightness_val, 0.0..=100.0)
                     .text(&brightness_label)
                     .step_by(1.0)
             );
             if brightness_resp.changed() {
-                self.settings.brightness_pct = brightness_val + 50.0;
+                self.settings.brightness_pct = brightness_val;
             }
 
-            let mut contrast_val = self.settings.contrast_pct - 50.0;
-            let contrast_label = format!("{}: {}%", I18n::tr(&self.lang, "contrast"), self.settings.contrast_pct.round() as i32);
+            let mut contrast_val = self.settings.contrast_pct;
+            let contrast_label = format!("{}: {}%", I18n::tr(&self.lang, "contrast"), contrast_val.round() as i32);
             let contrast_resp = ui.add(
                 egui::Slider::new(&mut contrast_val, 0.0..=100.0)
                     .text(&contrast_label)
                     .step_by(1.0)
             );
             if contrast_resp.changed() {
-                self.settings.contrast_pct = contrast_val + 50.0;
+                self.settings.contrast_pct = contrast_val;
             }
 
             if gamma_resp.changed() || brightness_resp.changed() || contrast_resp.changed() {
