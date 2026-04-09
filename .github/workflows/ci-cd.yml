@@ -6,6 +6,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -21,11 +22,10 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       - name: Build release
-        run: cargo build --release --locked
+        run: cargo build --release
       - name: Archive binary
-        run: |
-          cd target/release
-          7z a ../../rustvision.zip rustvision.exe
+        shell: pwsh
+        run: Compress-Archive -Path target/release/rustvision.exe -DestinationPath rustvision.zip
       - name: Get short SHA
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
