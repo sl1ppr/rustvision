@@ -7,75 +7,62 @@
 
 # RustVision
 
-RustVision is a simple tool for adjusting gamma in games like Rust on the fly. Built with Rust.
+**RustVision** is a lightweight, high-performance tool designed for real-time gamma adjustment in games like Rust. Built entirely in Rust for maximum efficiency and safety.
 
-You can manually change process name for any game.
-Works well with any anti-cheat.
+[Download Latest Release](https://github.com/asfrm/rustvision/releases)
 
 </div>
 
 ---
 
-<details>
-<summary><b>🇬🇧 English</b></summary>
+## 🛡️ Security & Anti-Cheat Safety
 
-### Why it is safe
+RustVision is designed to be as non-intrusive as possible, making it safe for use with various anti-cheat systems (EAC, BattlEye, etc.):
 
-- **No Hooks:** It does not hook into DirectX, Vulkan, or OpenGL.
-- **No DLL Injection:** It operates as a standalone process.
+* **No Hooks:** Does not interact with or hook into DirectX, Vulkan, or OpenGL.
+* **No DLL Injection:** Operates strictly as a standalone process.
+* **External Operation:** Adjusts gamma at the system/display level rather than modifying game memory.
 
-### Installation and Setup
+## ✨ Features
 
-You can download `.exe` file and start using the program.
+* **On-the-fly Adjustment:** Change gamma settings instantly without restarting your game.
+* **Customizable:** Manually change the target process name to support any game.
+* **Minimal Footprint:** Extremely low CPU and RAM usage.
 
-Download here: [GitHub Releases](https://github.com/asfrm/rustvision/releases)
+---
 
-### Or build it from source
+## 🚀 Getting Started
 
-If you prefer to compile the project yourself, follow these steps:
+### Installation
+1.  Navigate to the [Releases](https://github.com/asfrm/rustvision/releases) page.
+2.  Download the latest `rustvision.exe`.
+3.  Run the executable—no installation required.
 
-1. **Install Rust:** Ensure you have the Rust toolchain installed (get it at [rustup.rs](https://rustup.rs/)).
-2. **Clone the repository:**
-   ```bash
-   git clone https://github.com/asfrm/rustvision.git
-   cd rustvision
-   ```
-3. **Build:**
-   ```bash
-   cargo build --release
-   ```
+### Build from Source
+If you prefer to compile the project yourself:
 
-The binary will be at `target/release/rustvision.exe`.
+1.  **Install Rust:** Ensure you have the Rust toolchain installed via [rustup.rs](https://rustup.rs/).
+2.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/asfrm/rustvision.git
+    cd rustvision
+    ```
+3.  **Build the Release:**
+    ```bash
+    cargo build --release
+    ```
+    The compiled binary will be located at `target/release/rustvision.exe`.
 
-</details>
+---
 
-<details>
-<summary><b>🇷🇺 Русский</b></summary>
+## 📄 License
 
-### Почему это безопасно
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for more details.
 
-- **Без хуков:** Не внедряется в DirectX, Vulkan или OpenGL.
-- **Без DLL-инъекций:** Работает как отдельный процесс.
+---
 
-### Установка
+## 📸 Preview
 
-Скачай `.exe` из [Releases](https://github.com/asfrm/rustvision/releases) и запусти. Всё.
-
-### Собрать самому
-
-1. **Поставь Rust:** [rustup.rs](https://rustup.rs/)
-2. **Склонируй репо:**
-   ```bash
-   git clone https://github.com/asfrm/rustvision.git
-   cd rustvision
-   ```
-3. **Собери:**
-   ```bash
-   cargo build --release
-   ```
-
-Бинарник будет в `target/release/rustvision.exe`.
-
-</details>
-
-<img width="353" height="464" alt="image" src="https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba" />
+<div align="center">
+<img width="353" height="464" alt="RustVision Interface Preview" src="[https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba](https://github.com/user-attachments/assets/48f9111b-732a-436a-a060-f370243c2aba)" />
+</div>
